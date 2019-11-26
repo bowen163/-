@@ -1,0 +1,234 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct car {
+	char image;
+	char name[10];
+	int time;
+	int place;
+} car;
+
+struct park {
+	car * parkcar;//数据域 
+	int top;
+	int maxsize;
+};
+typedef struct park * stack;
+
+typedef struct node * pla;
+struct node {
+	car roadcar;
+	pla next;
+};
+typedef struct road * q;
+struct road {
+	pla front;
+	pla rear;
+	int maxsize;
+};
+typedef q queue;
+
+stack create(int maxsize);//创建顺序栈
+bool sfull(stack s);//判断栈满
+bool arrive(stack s,car x,queue q);//车辆到达 
+bool push(stack s,car x);//入栈
+bool sempty(stack s);
+car pop(stack s);//出栈
+queue createq();//创建队列 
+bool qempty(queue q);//判断队空
+queue in(queue q,car x);//入队
+car deleteq(queue q);//出队
+int find(stack s,car x);//查找位置
+void findx(queue q,car x);
+void price(car x,int t);//计算费用
+
+int main() {
+	printf("**************欢迎使用停车场管理系统！**************\n\n");
+	printf("****************收费标准：每分钟5元。***************\n\n");
+	printf("*******************祝您使用愉快！*******************\n\n");
+	printf("----------------------------------------------------\n\n");
+	int n;
+	printf("***************请输入停车场最大容量：***************\n");
+	scanf("%d",&n);
+	printf("----------------------------------------------------\n\n");
+	car c; 
+	stack lot,lot1;
+	lot=create(n);
+	lot1=create(n);
+	queue q=createq();
+	printf("请输入车辆信息(到达情况，车牌号，到达时间)以空格分隔:\n到达请输入'A'，离开请输入'D'，输入'E'时结束--\n\n");
+	while (1) {
+		getchar();
+		scanf("%c",&c.image);
+		if(c.image=='E') {
+			printf("******************谢谢使用，再见！******************\n\n");
+			printf("----------------------------------------------------\n\n");
+			break;
+		}
+		if(c.image=='A') {
+			scanf("%s",c.name);
+			scanf("%d",&c.time);
+			if(arrive(lot,c,q)){
+				printf("车牌号为%s的车辆已停入停车场,您的位置为：%d号车位\n\n",c.name,lot->top+1);
+			}else {
+				printf("抱歉，停车场已满，车牌号为%s的车辆已为您停入便道。\n\n",c.name);
+			}
+		} else if(c.image=='D') {
+			scanf("%s",c.name);
+			scanf("%d",&c.time);
+			int f=find(lot,c);
+			int g=lot->top-1;
+			if(f==-1) {
+				findx(q,c);
+			} else {
+				while (lot->top!=f) {
+					car x=pop(lot);
+					push(lot1,x);
+				}
+				car y=pop(lot);
+				price(y,c.time);
+				while (lot->top!=g) {
+					car x=pop(lot1);
+					push(lot,x);
+				}
+				if(qempty(q)!=true) {
+					car y=deleteq(q);
+					push(lot,y);
+					printf("车牌号为%s的车辆已停入停车场，您的位置为：%d号车位\n\n",y.name,lot->top+1);
+				}
+			}
+		} else {
+			scanf("%s",c.name);
+			scanf("%d",&c.time);
+			printf("输入无效，请重新输入！\n\n");
+		}
+	}
+
+	return 0;
+}
+
+stack create(int maxsize){//创建顺序栈
+	stack s=(stack)malloc(sizeof(struct park));
+	s->parkcar=(car *)malloc(maxsize * sizeof(car));
+	s->top=-1;
+	s->maxsize=maxsize;
+	return s; 
+}
+
+bool sfull(stack s){//判断栈满
+	return (s->top==s->maxsize-1);
+}
+
+bool arrive(stack s,car x,queue q){//到达 
+	if(sfull(s)){
+		q=in(q,x);//停车场满，入队 
+		return false;
+	}else {
+		push(s,x); //不满，入栈 
+		return true;
+	}
+}
+
+bool push (stack s,car x){//入栈
+	if(sfull(s)){
+		return false;
+	}else {
+		int mm=++s->top;
+		x.place=mm;
+		s->parkcar[mm]=x;
+		return true;
+	}
+}
+
+bool sempty(stack s){
+	return (s->top==-1); 
+}
+
+car pop(stack s){//出栈
+	if(sempty(s)){
+		printf("停车场是空的！\n");
+	}else{
+		return (s->parkcar[(s->top)--]);
+	}
+}
+
+queue createq(){
+	pla r;
+	r=(pla)malloc(sizeof(struct node));
+	r->next=NULL;//头指针初始化 
+	queue q;
+	q->front=r;//都等于头指针 
+	q->rear=r;
+	return q; 
+}
+
+bool qempty(queue q){//判断队空
+	return (q->front->next==NULL);
+}
+
+queue in(queue q,car x){//入队
+	pla p;
+	p=(pla)malloc(sizeof(struct node));
+	p->roadcar=x;
+	p->next=NULL;
+	q->rear->next=p;
+	q->rear=p;	
+	return q;
+	
+}
+
+car deleteq(queue q){//出队
+	pla p;
+	car e;
+	if(qempty(q)!=true){
+		p=q->front->next;
+		e=p->roadcar;
+		q->front->next=p->next;
+		if(q->rear==p){
+			q->rear=q->front;
+		}
+		free(p);
+		return e;
+	}
+}
+
+int find(stack s,car x){//查找位置
+	int t=s->top;
+	car m;
+	while(t>-1){
+		m=s->parkcar[t--];
+		if(strcmp(x.name,m.name)==0){
+		return m.place;
+		}
+	}
+	if(t==-1){
+		return -1;
+	} 
+}
+
+void findx(queue q,car x){
+	pla p,r;
+	p=(pla)malloc(sizeof(struct node));
+	p=q->front;
+	while (p->next!=NULL){
+		car m;
+		m=p->next->roadcar;
+		if(strcmp(m.name,x.name)==0){
+			r=p->next;
+			p->next=r->next;
+			free(r);
+			printf("您还未进入停车场，本次停车不收费，再见！\n\n"); 
+			return;
+		}
+		p=p->next;
+	} 
+	printf("未找到指定车辆，请核对车牌号！\n\n");
+	return;
+}
+
+void price(car x,int t){//计算费用
+	int p=t-x.time;
+	p*=5;
+	printf("本次停车共收费%d元，祝您旅途愉快，再见！\n\n",p);
+}

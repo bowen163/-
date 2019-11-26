@@ -1,0 +1,202 @@
+#include<stdio.h>
+#include<malloc.h>
+#define MaxStackSize 3            
+typedef struct               //车辆信息的结构体
+{
+         int number;
+         int ahour;
+         int alhour;
+         int aminute;
+         int alminute;
+         int place;
+}Carmessage;
+typedef struct SNode*PtrToSNode;
+struct SNode             //双栈结构体
+{
+    Carmessage *Car;
+         int top1;
+         int top2;
+         int Maxsize;
+};
+typedef PtrToSNode SeqStack;
+//1.栈的初始化 
+SeqStack CreateStack(int Maxsize)
+{
+	SeqStack s=(SeqStack*)malloc(sizeof(struct SNode));
+	s->Car=(Carmessage*)malloc(Maxsize*sizeof(Carmessage));
+	s->TOP1=-1;
+	s->TOP2=Maxsize;
+	s->Maxsize = Maxsize;
+	return s;
+}
+typedef struct qnode        //链式队列结点
+{
+         Carmessage Car;
+         struct qnode *next;
+}LQNode;
+typedef struct              //链式队列结点指针
+{
+         LQNode *front;
+         LQNode *rear;
+         int count;
+}LQueue;
+int QueueAppend(LQueue *Q,Carmessage Carx) //入队列函数
+{
+     LQNode *p;
+p=(LQNode *)malloc(sizeof(LQNode));
+     p->Car.number=Carx.number;
+     p->Car.ahour=Carx.ahour;
+     p->Car.aminute=Carx.aminute;
+     p->Car.alhour=Carx.alhour;
+     p->Car.alminute=Carx.alminute;
+     p->next=NULL;
+     Q->count++;
+     if(Q->rear!=NULL)Q->rear->next=p;
+     	Q->rear=p;
+     if(Q->front==NULL)Q->front=p;
+     return 0;
+}
+int QueueAd(LQueue *Q,int lh,int lm)           //排队等候入栈的车辆，载入入栈时间
+{
+    Q->front->Car.alhour=lh;
+    Q->front->Car.alminute=lm;
+	return 0; 
+}
+int QueueGet(LQueue *Q,Carmessage *Cary)    //出队列函数 
+{
+    Cary->number=Q->front->Car.number;
+    Cary->ahour=Q->front->Car.ahour;
+    Cary->aminute=Q->front->Car.aminute;
+    Cary->alhour=Q->front->Car.alhour;
+    Cary->alminute=Q->front->Car.alminute;
+    Q->front=Q->front->next;                        //队列头指针后移
+    Q->count--;
+	return 0;                                      
+}
+int StackPush(SeqStack *S,LQueue *Q,Carmessage Carx)//停车场的入栈函数
+{
+    if(S->top1>=(MaxStackSize+1)/2)                  //车场停满 ,停入过道 即入队列
+     QueueAppend(Q,Carx);   
+    else                                       //车辆未满，入栈 S,
+    {
+    	S->Car[S->top1].alhour=0;
+    	S->Car[S->top1].alminute=0;
+        S->Car[S->top1].ahour=Carx.ahour;
+        S->Car[S->top1].aminute=Carx.aminute;
+    	S->Car[S->top1].number=Carx.number;
+        S->top1++;
+    return 1;
+    }
+}
+int StackPop(SeqStack *S,LQueue *Q,Carmessage *Carx)	//停车场的出栈函数
+{
+    int n,m;
+    int chuche=0;
+    Carmessage Cary;
+if(S->top1<=0)
+	return 2;
+    for(n=S->top1;S->top1>0;S->top1--)            //寻找出栈的车牌号 
+ if(S->Car[S->top1-1].number==Carx->number)
+ {
+         Carx->ahour=S->Car[S->top1-1].ahour;      //记录被删除车信息
+         Carx->aminute=S->Car[S->top1-1].aminute;
+         Carx->alhour=S->Car[S->top1-1].alhour;
+         Carx->alminute=S->Car[S->top1-1].alminute;
+
+    if(n!=S->top1)
+  {
+    for(;n>S->top1;n--,S->top2--)
+    {           
+        S->Car[S->top2].ahour=S->Car[n-1].ahour;
+        S->Car[S->top2].aminute=S->Car[n-1].aminute;
+    	S->Car[S->top2].number=S->Car[n-1].number;
+    	S->Car[S->top2].alhour=S->Car[n-1].alhour;
+        S->Car[S->top2].alminute=S->Car[n-1].alminute;
+            
+    }
+        for(S->top1--;S->top2<MaxStackSize;S->top1++,S->top2++)        //转移进//开出
+        {
+         	S->Car[S->top1].ahour=S->Car[S->top2+1].ahour;
+            S->Car[S->top1].aminute=S->Car[S->top2+1].aminute;
+    		S->Car[S->top1].number=S->Car[S->top2+1].number;
+     		S->Car[S->top1].alhour=S->Car[S->top2+1].alhour;
+            S->Car[S->top1].alminute=S->Car[S->top2+1].alminute;
+        }
+    	S->top2--;
+       }
+	  	S->top1--;                  //进行出车操作 
+	  	chuche=1;
+	  	break;
+ }
+ if(chuche==0&&S->top1==0&&S->top1<n)
+ {S->top1=n;
+ 	return 2;}
+ if(S->top1==(MaxStackSize-1)/2&&Q->front!=NULL)//判断是否有车等候进站
+ {
+     QueueGet(Q,&Cary);
+        S->Car[S->top1].ahour=Cary.ahour;
+        S->Car[S->top1].aminute=Cary.aminute;
+        S->Car[S->top1].number=Cary.number;
+        S->Car[S->top1].alhour=Cary.alhour;
+        S->Car[S->top1].alminute=Cary.alminute;          
+        S->top1++;
+ }
+	return 1;
+
+}
+int main()
+{
+        int m,biandao,chechang;
+        int lh,lm;
+        char al;
+        Carmessage Carx;
+        SeqStack S;
+        LQueue Q;
+        Q.rear=NULL;                              //初始化队列
+        Q.front=NULL;
+        Q.count=0;
+    	S.top1=0;
+     	S.top2=MaxStackSize-1;                                 //初始化栈;
+    	printf("------------车辆到达请输入A --------\n");
+    	printf("------------车辆离开请输D-----------\n"); 
+    	printf("------------退出系统请输E-----------\n");
+         while(scanf("%c",&al)!=EOF && al!='E')
+         {
+	         if(al=='A')
+	         {
+	            printf("请输入停车时刻（例如10:15）\n");
+	            scanf("%d:%d",&Carx.ahour,&Carx.aminute);
+	        	printf("请输入车牌号\n");
+	        	scanf("%d",&Carx.number);
+	            StackPush(&S,&Q,Carx);
+	        	if(Q.count==0)
+					printf("停车的位置：在停车场的%d号位\n",S.top1);
+	            else 
+					printf("停车的位置：在便道的%d号位\n",Q.count);
+	         }
+	         else if(al=='D')
+	         {
+	            printf("请输入离开时刻（例如10:15）  ");
+	            scanf("%d:%d",&lh,&lm);
+	        	if(S.top1>=(MaxStackSize+1)/2&&Q.front!=NULL)QueueAd(&Q,lh,lm);
+	        		printf("请输入车牌号\n");
+	        		scanf("%d",&Carx.number);
+	        		m=StackPop(&S,&Q,&Carx);
+        	if(m==2)printf("无此车\n");
+                   else{
+                   	printf("该车停车时刻：%d:%d\n",Carx.ahour,Carx.aminute);
+                   	biandao=(Carx.alhour-Carx.ahour)*60+Carx.alminute-Carx.aminute;
+                   	chechang=(lh-Carx.ahour)*60+lm-Carx.aminute;
+                            printf("该车在停车场停车时间：%dh\n",chechang/60);
+                            printf("该车需缴费（停车场3元/小时）：%d元\n",chechang*3/60);
+                               
+                   }
+         }
+    	else printf("错误！！请重新输入\n");
+                printf("------------车辆到达请输入A --------\n");
+         		printf("------------车辆离开请输D-----------\n"); 
+         		printf("------------退出系统请输E-----------\n");
+                   scanf("%c",&al);
+         }
+         return 0;
+}

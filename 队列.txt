@@ -1,0 +1,72 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<iostream>
+using namespace std;
+#define MaxSize 100//定义最大队列长度
+int i;
+typedef struct {
+    int *base;
+    int fron;       //此处应为front但其为关键字
+    int rear;
+}SqQueue;
+int isEmpty(SqQueue &Q){  //判断是否为空，通过少用一个元素空间区别队满和队空
+    return Q.fron==Q.rear;
+}
+int isfull(SqQueue &Q)  //判断是否为满
+{
+    return (Q.rear+1)%MaxSize==Q.fron;
+}
+bool CreatQueue (SqQueue &Q)   //初始化队列
+{
+    Q.base=(int *)malloc (MaxSize*sizeof(int));
+    if(!Q.base)exit(0);
+    Q.fron=Q.rear=0;
+    return 0;
+}
+int QueueLength(SqQueue &Q)  //判断队列的长度
+{
+    return (Q.rear-Q.fron+MaxSize)%MaxSize;
+    }
+bool AddQ(SqQueue &Q,int e)  //入队
+{
+    if(isfull(Q)) return false;
+    Q.base[Q.rear]=e;
+    Q.rear=(Q.rear+1)%MaxSize;
+    return true;
+}
+bool DeleteQ(SqQueue &Q,int &e)  //出队
+{
+    if(isfull(Q))return false;
+    e=Q.base[Q.fron];
+    Q.fron=(Q.fron+1)%MaxSize;
+    return true;
+}
+void print(SqQueue &Q)      //打印队列中剩余元素
+{
+	if(isEmpty(Q))   //判断是否为空
+ 	{
+ 		cout<<"underflow"<<endl;
+ 		exit(0);
+	 }
+	 else
+	 {
+	 	while(Q.fron!=Q.rear)
+	 	{
+	 		cout<<Q.base[Q.fron++]<<" ";
+		 }
+		 cout<<endl;
+	 }
+}
+int main ()
+{   int e;
+    SqQueue Q;
+	CreatQueue(Q);
+    for(i=1;i<100;i*=3)//对对列赋值
+    {
+        AddQ(Q,i);
+    }
+    DeleteQ(Q,e); //删除两个队列元素
+    DeleteQ(Q,e);
+    print(Q);
+    return 0;
+}

@@ -1,0 +1,93 @@
+#include<stdio.h>
+#include<stdlib.h>
+//定义双堆栈结构 
+typedef int Position;
+typedef int ElementType;
+typedef struct SNode*PtrToSNode;
+struct SNode
+{
+	ElementType *data;
+	Position TOP1;
+	Position TOP2;
+	int Maxsize;
+};
+typedef PtrToSNode Stack;
+//1.栈的初始化 
+Stack CreateStack(int Maxsize)
+{
+	Stack s=(Stack)malloc(sizeof(struct SNode));
+	s->data=(ElementType*)malloc(Maxsize*sizeof(ElementType));
+	s->TOP1=-1;
+	s->TOP2=Maxsize;
+	s->Maxsize = Maxsize;
+	return s;
+}
+//2.入栈操作 
+bool Push(Stack s,ElementType x,char tag)
+{
+	if(s->TOP2-s->TOP1==1){
+		
+		return 0;//判空 
+	}
+	else{
+		if(tag=='A')
+		{	s->data[++(s->TOP1)]=x;
+		printf("Stack1 插入成功\n");	
+	    }
+	    else if(tag=='D')
+		{   s->data[--(s->TOP2)]=x;
+			 printf("Stack2 插入成功\n");
+		}
+		
+	return 1;
+    }
+}
+//3.出栈操作 
+ElementType Pop(Stack s,char tag)
+{
+	if(tag=='A')
+	{	if(s->TOP1==-1)	
+		{
+			printf("The Stack1 is full");
+			return 0;//判A栈空, A表示到达(Arrival);
+			
+		}
+		else 
+		{
+		printf("Stack1 出栈成功\n");
+		return s->data[(s->TOP1)--];
+		} 
+	}
+	else if(tag=='D')
+	{  
+	    if(s->TOP2==s->Maxsize)
+		{
+			return 0;//判D栈空 ,D表示离去(Departure);
+			printf("The Stack2 is full");
+		 } 
+		 else { 
+	     printf("Stack2 出栈成功\n");
+		 return s->data[(s->TOP2)++];
+		 } 
+	}	
+} 
+int GetTop(Stack s,ElementType *ptr1,ElementType *ptr2){
+	 
+}
+int main()
+{
+	Stack c =CreateStack(100);;
+	ElementType x,*ptr;
+	Push(c,1,'A');
+    Push(c,2,'A');
+	Push(c,3,'A');
+	Push(c,3,'D');
+	Pop(c,'A');
+	Pop(c,'A');
+	Pop(c,'A');
+	Pop(c,'D');
+	return 0;
+	
+}
+
+
